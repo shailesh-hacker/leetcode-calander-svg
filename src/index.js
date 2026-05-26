@@ -43,7 +43,7 @@ app.get('/:username/stats', async (req, res) => {
 
   // Set SVG response headers
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+  res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   try {
@@ -97,7 +97,7 @@ app.get('/:username', async (req, res) => {
 
   // Set SVG response headers
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600');
+  res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   try {
