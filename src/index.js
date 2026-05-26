@@ -10,23 +10,22 @@
  */
 
 const express = require('express');
+const path = require('path');
 const { fetchAllData } = require('./api');
 const { generateSvg, generateStatsSvg, generateErrorSvg } = require('./svg/generator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Serve static assets from src/public
+app.use(express.static(path.join(__dirname, 'public')));
+
 /* ────────────────────────────────────────────────────
- * Health check
+ * Web UI
  * ──────────────────────────────────────────────────── */
 
 app.get('/', (_req, res) => {
-  res.json({
-    status: 'ok',
-    usage: 'GET /:username or GET /:username?year=2024',
-    example: `http://localhost:${PORT}/shailendra?year=2022`,
-    docs: 'https://github.com/your-repo/leetcode-calendar-svg',
-  });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 /* ────────────────────────────────────────────────────

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeetCode Calendar SVG Generator</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: rgba(19, 27, 46, 0.4);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary-color: #10b981;
+      --primary-hover: #059669;
+      --primary-glow: rgba(16, 185, 129, 0.4);
+      --accent-color: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.3);
+      --input-bg: rgba(17, 24, 39, 0.8);
+      --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-x: hidden;
+      position: relative;
+      padding: 2rem 1rem;
+    }
+
+    /* Floating background blur effects */
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      z-index: -1;
+      opacity: 0.25;
+      animation: float 20s infinite alternate ease-in-out;
+    }
+
+    .blob-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--primary-color);
+      top: -100px;
+      left: -100px;
+    }
+
+    .blob-2 {
+      width: 500px;
+      height: 500px;
+      background: var(--accent-color);
+      bottom: -150px;
+      right: -100px;
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(60px, 40px) scale(1.1); }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+      z-index: 1;
+    }
+
+    /* Header styling */
+    header {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, #ffffff 40%, #a7f3d0 70%, var(--primary-color) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    /* Glassmorphic Generator Form Card */
+    .form-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .input-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, select {
+      width: 100%;
+      background-color: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      color: var(--text-main);
+      font-family: var(--font-main);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .btn-submit {
+      background-color: var(--primary-color);
+      color: #042f1a;
+      border: none;
+      border-radius: 10px;
+      padding: 0.95rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    .btn-submit:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--primary-glow);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    /* Previews & snippet sections */
+    .results-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    .preview-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+
+    .preview-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1rem;
+    }
+
+    .preview-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* SVG rendering container */
+    .svg-wrapper {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      min-height: 150px;
+      position: relative;
+    }
+
+    .svg-wrapper.grid-wrapper {
+      background: transparent;
+      border: 1px dashed var(--card-border);
+    }
+
+    .svg-wrapper.stats-wrapper {
+      background: transparent;
+      border: 1px dashed var(--card-border);
+    }
+
+    .svg-wrapper img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    /* Code actions & copy segments */
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .btn-action {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 0.65rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-action:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-action.download {
+      background-color: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+
+    .btn-action.download:hover {
+      background-color: rgba(59, 130, 246, 0.2);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+
+    .code-container {
+      background-color: var(--input-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1rem;
+      position: relative;
+    }
+
+    .code-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    code {
+      display: block;
+      font-family: monospace, Courier, monospace;
+      font-size: 0.9rem;
+      color: var(--primary-color);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* Toast overlay alert */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background-color: #10b981;
+      color: #042f1a;
+      padding: 0.8rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Loader */
+    .loader {
+      width: 30px;
+      height: 30px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s infinite linear;
+      position: absolute;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 4rem;
+      margin-bottom: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient floating blobs -->
+  <div class="glow-blob blob-1"></div>
+  <div class="glow-blob blob-2"></div>
+
+  <div class="container">
+    <header>
+      <h1>LeetCode Calendar SVG Generator</h1>
+      <p>Generate beautiful, native-looking LeetCode contribution heatmap grids and active stats cards to feature in your GitHub profile README.</p>
+    </header>
+
+    <!-- Generator inputs card -->
+    <main class="form-card">
+      <div class="form-row">
+        <div class="input-group">
+          <label for="username">LeetCode Username</label>
+          <input type="text" id="username" placeholder="e.g., shailesh-hacker" value="shailesh-hacker">
+        </div>
+        
+        <div class="input-group">
+          <label for="year">Render Year</label>
+          <select id="year">
+            <option value="rolling">Rolling (Last 1 Year)</option>
+            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="generateBtn" class="btn-submit">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        Generate Profile SVGs
+      </button>
+    </main>
+
+    <!-- Previews and copyable embeds -->
+    <section class="results-container">
+      
+      <!-- 1. Heatmap Grid Card -->
+      <div id="gridCard" class="preview-card">
+        <div class="preview-header">
+          <div class="preview-title">🗓️ Contribution Heatmap Grid</div>
+          <div class="actions-row">
+            <button class="btn-action download" onclick="downloadSVG('grid')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download SVG
+            </button>
+            <button class="btn-action" onclick="copySnippet('grid-md')">Copy Markdown</button>
+            <button class="btn-action" onclick="copySnippet('grid-html')">Copy HTML</button>
+          </div>
+        </div>
+
+        <div class="svg-wrapper grid-wrapper">
+          <div id="gridLoader" class="loader"></div>
+          <img id="gridImg" alt="LeetCode Heatmap Grid Preview" style="display: none;">
+        </div>
+
+        <div class="code-container">
+          <div class="code-label">Markdown Snippet</div>
+          <code id="grid-md"></code>
+        </div>
+        <div class="code-container">
+          <div class="code-label">HTML Snippet</div>
+          <code id="grid-html"></code>
+        </div>
+      </div>
+
+      <!-- 2. Stats Flame Card -->
+      <div id="statsCard" class="preview-card">
+        <div class="preview-header">
+          <div class="preview-title">🔥 Streak & Active Days Card</div>
+          <div class="actions-row">
+            <button class="btn-action download" onclick="downloadSVG('stats')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download SVG
+            </button>
+            <button class="btn-action" onclick="copySnippet('stats-md')">Copy Markdown</button>
+            <button class="btn-action" onclick="copySnippet('stats-html')">Copy HTML</button>
+          </div>
+        </div>
+
+        <div class="svg-wrapper stats-wrapper">
+          <div id="statsLoader" class="loader"></div>
+          <img id="statsImg" alt="LeetCode Stats Card Preview" style="display: none;">
+        </div>
+
+        <div class="code-container">
+          <div class="code-label">Markdown Snippet</div>
+          <code id="stats-md"></code>
+        </div>
+        <div class="code-container">
+          <div class="code-label">HTML Snippet</div>
+          <code id="stats-html"></code>
+        </div>
+      </div>
+
+    </section>
+
+    <footer>
+      Built with ❤️ for the developer community. Star on <a href="https://github.com/shailesh-hacker/leetcode-calander-svg" target="_blank">GitHub</a>.
+    </footer>
+  </div>
+
+  <div id="toast" class="toast">Snippet Copied!</div>
+
+  <script>
+    const generateBtn = document.getElementById('generateBtn');
+    const usernameInput = document.getElementById('username');
+    const yearSelect = document.getElementById('year');
+
+    const gridCard = document.getElementById('gridCard');
+    const statsCard = document.getElementById('statsCard');
+
+    const gridImg = document.getElementById('gridImg');
+    const statsImg = document.getElementById('statsImg');
+
+    const gridLoader = document.getElementById('gridLoader');
+    const statsLoader = document.getElementById('statsLoader');
+
+    const gridMd = document.getElementById('grid-md');
+    const gridHtml = document.getElementById('grid-html');
+    const statsMd = document.getElementById('stats-md');
+    const statsHtml = document.getElementById('stats-html');
+
+    const toast = document.getElementById('toast');
+
+    // Get base URL dynamically based on where page is served
+    const baseUrl = window.location.origin;
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    function generate() {
+      const username = usernameInput.value.trim();
+      const year = yearSelect.value;
+      if (!username) {
+        showToast('⚠ Please enter a username');
+        return;
+      }
+
+      // Show loader, hide image
+      gridLoader.style.display = 'block';
+      statsLoader.style.display = 'block';
+      gridImg.style.display = 'none';
+      statsImg.style.display = 'none';
+
+      // Ensure cards are visible container-wise
+      gridCard.classList.add('visible');
+      statsCard.classList.add('visible');
+
+      // Build target URLs
+      let gridUrl = `${baseUrl}/${username}`;
+      let statsUrl = `${baseUrl}/${username}/stats`;
+      if (year !== 'rolling') {
+        gridUrl += `?year=${year}`;
+        statsUrl += `?year=${year}`;
+      }
+
+      // Set image sources
+      gridImg.src = gridUrl;
+      statsImg.src = statsUrl;
+
+      // Handle loading callbacks
+      gridImg.onload = () => {
+        gridLoader.style.display = 'none';
+        gridImg.style.display = 'block';
+      };
+
+      statsImg.onload = () => {
+        statsLoader.style.display = 'none';
+        statsImg.style.display = 'block';
+      };
+
+      gridImg.onerror = () => {
+        gridLoader.style.display = 'none';
+        showToast('❌ Error loading grid SVG. Make sure username is correct.');
+      };
+
+      statsImg.onerror = () => {
+        statsLoader.style.display = 'none';
+      };
+
+      // Set code snippets
+      const gridMarkdownStr = `[![LeetCode Heatmap Grid](${gridUrl})](https://leetcode.com/${username})`;
+      const gridHtmlStr = `<a href="https://leetcode.com/${username}" target="_blank">\n  <img src="${gridUrl}" width="694" alt="LeetCode Heatmap Grid"/>\n</a>`;
+      
+      const statsMarkdownStr = `[![LeetCode Streak & Active Days](${statsUrl})](https://leetcode.com/${username})`;
+      const statsHtmlStr = `<a href="https://leetcode.com/${username}" target="_blank">\n  <img src="${statsUrl}" width="380" alt="LeetCode Streak & Active Days"/>\n</a>`;
+
+      gridMd.textContent = gridMarkdownStr;
+      gridHtml.textContent = gridHtmlStr;
+      statsMd.textContent = statsMarkdownStr;
+      statsHtml.textContent = statsHtmlStr;
+    }
+
+    function copySnippet(elementId) {
+      const text = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(text)
+        .then(() => showToast('📋 Snippet Copied to Clipboard!'))
+        .catch(() => showToast('❌ Failed to copy snippet'));
+    }
+
+    function downloadSVG(type) {
+      const username = usernameInput.value.trim() || 'leetcode';
+      const year = yearSelect.value;
+      const img = type === 'grid' ? gridImg : statsImg;
+      const suffix = type === 'grid' ? 'grid' : 'stats';
+      const filename = `${username}-${suffix}.svg`;
+
+      if (!img.src) {
+        showToast('⚠ Please generate SVGs first');
+        return;
+      }
+
+      showToast('📥 Downloading SVG file...');
+      fetch(img.src)
+        .then(response => {
+          if (!response.ok) throw new Error('Network response error');
+          return response.text();
+        })
+        .then(text => {
+          const blob = new Blob([text], { type: 'image/svg+xml' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        })
+        .catch(err => {
+          console.error(err);
+          showToast('❌ Download failed. Try again.');
+        });
+    }
+
+    generateBtn.addEventListener('click', generate);
+
+    // Run automatically on page load for default user
+    window.addEventListener('load', generate);
+  </script>
+</body>
+</html>

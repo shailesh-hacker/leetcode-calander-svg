@@ -14,15 +14,16 @@
 
 ## ✨ Features
 
-This project provides two distinct, highly optimized SVGs to embed in your GitHub README:
+This project provides a beautiful, native-looking LeetCode profile generator including:
 
-1. 🗓️ **Compact Heatmap Grid (`GET /:username`)**: A clean 53-week contribution grid showing your submissions, re-mapped to perfect Monday–Sunday columns. Contains only month labels, day labels, and the grid.
-2. 📊 **Streak & Active Days Card (`GET /:username/stats`)**: A dedicated premium stats card showing your active days and current streak with custom-designed vector flame/calendar icons.
+1. 🖥️ **Interactive Web UI Generator (`/`)**: A sleek, dark-themed glassmorphism visual page where users can input their LeetCode username and render year to preview SVGs, download them as static files directly, and copy one-click markdown/HTML embed snippets.
+2. 🗓️ **Compact Heatmap Grid (`GET /:username`)**: A clean calendar grid showing submissions exactly like LeetCode's native visual spacing and nesting (viewBox `764.74 × 104.64`).
+3. 📊 **Streak & Active Days Card (`GET /:username/stats`)**: A dedicated stats card (width 380px) displaying your active days and max streak count with clean flame/calendar icons.
 
-Both options support:
-- ⚡ **Direct GraphQL Integration** — Queries `leetcode.com` directly, bypassing third-party rate-limited proxies.
-- 🔄 **Rolling 1-Year View** — Defaults to a rolling 53-week calendar (perfect for live profile cards). Falls back to fixed years if `?year=YYYY` is specified.
-- 🎨 **Sleek Dark Theme** — Color-coded grid cells matching GitHub's dark mode colors.
+All SVGs support:
+- ⚡ **Direct GraphQL Integration** — Fetches from LeetCode directly for speed.
+- 🔄 **Rolling 1-Year or Fixed Year Views** — Spans a rolling 365-day range or a fixed calendar year.
+- 🎨 **Auto-Theme Styling** — SVGs embed styles that automatically adapt to light/dark themes (`prefers-color-scheme`).
 
 ---
 
@@ -42,10 +43,10 @@ If you have Vercel CLI installed:
 vercel
 ```
 
-Once deployed, your profile markdown embeds will look like this:
+Once deployed, visit the root URL of your Vercel project to open the generator UI dashboard. From there, you can type your username to generate the custom URLs, download the SVGs, or copy the snippets:
 ```markdown
 <p align="center">
-  <img src="https://your-app-domain.vercel.app/shailesh-hacker" width="790" alt="LeetCode Heatmap Grid"/>
+  <img src="https://your-app-domain.vercel.app/shailesh-hacker" width="694" alt="LeetCode Heatmap Grid"/>
 </p>
 <p align="center">
   <img src="https://your-app-domain.vercel.app/shailesh-hacker/stats" width="380" alt="LeetCode Stats"/>
