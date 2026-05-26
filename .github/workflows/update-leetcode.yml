@@ -1,0 +1,36 @@
+name: Update LeetCode SVGs
+
+on:
+  schedule:
+    # Runs every 12 hours
+    - cron: '0 */12 * * *'
+  workflow_dispatch: # Allows manual run via the GitHub Actions UI
+
+jobs:
+  update-svg:
+    runs-on: ubuntu-latest
+    permissions:
+      # Grant permission to write/commit back to the repository
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate LeetCode SVGs
+        # Replace 'shailesh-hacker' with process.env.LEETCODE_USERNAME if you want it configurable,
+        # but hardcoding is perfect for a single-user profile repo!
+        run: node generate.js shailesh-hacker
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shailesh-hacker-grid.svg shailesh-hacker-stats.svg
+          # Commit only if files actually changed to avoid empty commit errors
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update LeetCode contribution SVGs" && git push)

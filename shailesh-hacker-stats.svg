@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="380" height="100" viewBox="0 0 380 100" fill="none">
+  <!-- Background card -->
+  <rect width="380" height="100" rx="12" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Left Column: Active Days -->
+  <g transform="translate(15, 0)">
+    <!-- Calendar Icon -->
+    <g transform="translate(25, 38)">
+      <rect x="0" y="2" width="16" height="16" rx="3" fill="none" stroke="#58a6ff" stroke-width="1.8"/>
+      <line x1="0" y1="8" x2="16" y2="8" stroke="#58a6ff" stroke-width="1.8"/>
+      <line x1="4" y1="0" x2="4" y2="4" stroke="#58a6ff" stroke-width="1.8"/>
+      <line x1="12" y1="0" x2="12" y2="4" stroke="#58a6ff" stroke-width="1.8"/>
+    </g>
+    <!-- Stats text -->
+    <text x="52" y="47" fill="#58a6ff" font-size="24" font-weight="700" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">176</text>
+    <text x="52" y="66" fill="#8b949e" font-size="12" font-weight="500" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Active Days</text>
+  </g>
+
+  <!-- Divider -->
+  <line x1="190" y1="20" x2="190" y2="80" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Right Column: Streak -->
+  <g transform="translate(195, 0)">
+    <!-- Fire Icon -->
+    <g transform="translate(25, 36)" fill="#ff9500">
+      <path d="M8 0C8 0 13.5 4.5 13.5 8.5C13.5 11.5 11 14 8 14C5 14 2.5 11.5 2.5 8.5C2.5 5 8 0 8 0Z"/>
+      <path d="M8 4.5C8 4.5 10.5 7.5 10.5 9.5C10.5 11 9.5 12 8 12C6.5 12 5.5 11 5.5 9.5C5.5 8 8 4.5 8 4.5Z" fill="#ffc01e"/>
+    </g>
+    <!-- Stats text -->
+    <text x="52" y="47" fill="#ff9500" font-size="24" font-weight="700" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">67</text>
+    <text x="52" y="66" fill="#8b949e" font-size="12" font-weight="500" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Current Streak</text>
+  </g>
+</svg>
