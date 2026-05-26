@@ -10,6 +10,7 @@ const { THEME, DIMENSIONS, FONTS } = require('./theme');
 const {
   getCalendarGrid,
   getMonthLabels,
+  getMaxStreak,
   escapeXml,
   formatNumber,
 } = require('./utils');
@@ -19,10 +20,10 @@ const {
  * ──────────────────────────────────────────────────── */
 
 /**
- * Generate the compact heatmap grid SVG string.
- * Contains only month labels, day labels, and cells.
+ * Generate the compact heatmap grid SVG string matching LeetCode's native specifications.
+ * Contains only month/week grouped cells and month labels.
  *
- * Dimensions: 790px × 130px
+ * Dimensions: dynamic width (default 764.74px) × 104.64px
  *
  * @param {Object} data
  * @param {number|null} data.year
@@ -32,68 +33,83 @@ const {
 function generateSvg(data) {
   const { year, submissionMap } = data;
 
-  const width = 790;
-  const height = 130;
-  const borderRadius = 12;
+  const { cells, months } = getCalendarGrid(year, submissionMap);
+  const monthLabels = getMonthLabels(months);
 
-  const { cells } = getCalendarGrid(year, submissionMap);
-  const monthLabels = getMonthLabels(cells);
+  // Find the maximum x coordinate to determine the SVG viewBox width dynamically
+  let maxWeekX = 0;
+  months.forEach(m => {
+    m.weeks.forEach(w => {
+      if (w.x > maxWeekX) {
+        maxWeekX = w.x;
+      }
+    });
+  });
+  const viewBoxWidth = maxWeekX + 8.86; // cell size 8.86
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
-  <!-- Background card -->
-  <rect width="${width}" height="${height}" rx="${borderRadius}" fill="${THEME.bg}" stroke="${THEME.cardBorder}" stroke-width="1"/>
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewBoxWidth} 104.64" width="694" fill="none">
+  <style>
+    svg {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    :root {
+      --fill-tertiary: rgba(255, 255, 255, 0.08);
+      --green-20: #1e3a27;
+      --green-60: #15803d;
+      --green-80: #22c55e;
+      --text-muted: #8b949e;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --fill-tertiary: rgba(0, 0, 0, 0.06);
+        --green-20: #dcfce7;
+        --green-60: #4ade80;
+        --green-80: #16a34a;
+        --text-muted: #57606a;
+      }
+    }
+    .cursor-pointer {
+      cursor: pointer;
+    }
+  </style>
+
+  <!-- Heatmap grid -->
+  ${renderGrid(months)}
 
   <!-- Month labels -->
   ${renderMonthLabels(monthLabels)}
-
-  <!-- Day-of-week labels -->
-  ${renderDayLabels()}
-
-  <!-- Heatmap grid -->
-  ${renderGrid(cells)}
 </svg>`;
 }
 
 function renderMonthLabels(labels) {
-  const { fontMonth } = DIMENSIONS;
-  const y = 17; // Align nicely above the grid cells (gridOffsetY = 25)
-
   return labels
     .map(
       (l) =>
-        `<text x="${l.x}" y="${y}" fill="${THEME.textMuted}" font-size="${fontMonth}" font-family="${FONTS.main}">${l.name}</text>`
+        `<text x="${l.x}" y="97.14" fill="var(--text-muted, #AFB4BD)" font-size="14px" class="font-xs">${l.name}</text>`
     )
     .join('\n  ');
 }
 
-function renderDayLabels() {
-  const { cellSize, cellGap, fontDay } = DIMENSIONS;
-  const gridOffsetX = 40;
-  const gridOffsetY = 25;
-  const step = cellSize + cellGap;
-  const days = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
-
-  return days
-    .map((d, i) => {
-      if (!d) return '';
-      const y = gridOffsetY + i * step + cellSize - 1;
-      return `<text x="${gridOffsetX - 8}" y="${y}" text-anchor="end" fill="${THEME.textMuted}" font-size="${fontDay}" font-family="${FONTS.main}">${d}</text>`;
+function renderGrid(months) {
+  return months
+    .map((m) => {
+      const weeksStr = m.weeks
+        .map((w) => {
+          const rectsStr = w.rects
+            .map((r) => {
+              if (r.isTransparent) {
+                return `<rect x="${r.x}" y="${r.y}" width="8.86" height="8.86" fill="transparent" rx="2" ry="2"></rect>`;
+              }
+              const titleTag = `<title>${r.tooltip}</title>`;
+              return `<rect x="${r.x}" y="${r.y}" width="8.86" height="8.86" fill="${r.fill}" rx="2" ry="2" class="cursor-pointer" data-state="closed">${titleTag}</rect>`;
+            })
+            .join('');
+          return `<g x="${w.x}" y="0" class="week ${w.num}">${rectsStr}</g>`;
+        })
+        .join('');
+      return `<g x="${m.x}" y="0" class="month ${m.num}">${weeksStr}</g>`;
     })
-    .filter(Boolean)
-    .join('\n  ');
-}
-
-function renderGrid(cells) {
-  const { cellSize, cellRadius } = DIMENSIONS;
-
-  return cells
-    .map((c) => {
-      const dateStr = c.date.toISOString().split('T')[0];
-      const title = `${c.count} submission${c.count !== 1 ? 's' : ''} on ${dateStr}`;
-      return `<rect x="${c.x}" y="${c.y}" width="${cellSize}" height="${cellSize}" rx="${cellRadius}" fill="${c.color}"><title>${title}</title></rect>`;
-    })
-    .filter(Boolean)
-    .join('\n  ');
+    .join('');
 }
 
 /* ────────────────────────────────────────────────────
@@ -119,12 +135,16 @@ function generateStatsSvg(data) {
   const height = 100;
   const borderRadius = 12;
 
+  const { cells } = getCalendarGrid(year, submissionMap);
+
   // Compute active days from cells if rolling calendar, else use totalActiveDays
   let activeDays = totalActiveDays;
   if (!year) {
-    const { cells } = getCalendarGrid(year, submissionMap);
     activeDays = cells.filter((c) => c.count > 0).length;
   }
+
+  // Calculate maximum streak dynamically from grid cells and current streak
+  const maxStreak = Math.max(streak, getMaxStreak(cells));
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
   <!-- Background card -->
@@ -155,8 +175,8 @@ function generateStatsSvg(data) {
       <path d="M8 4.5C8 4.5 10.5 7.5 10.5 9.5C10.5 11 9.5 12 8 12C6.5 12 5.5 11 5.5 9.5C5.5 8 8 4.5 8 4.5Z" fill="${THEME.medium}"/>
     </g>
     <!-- Stats text -->
-    <text x="52" y="47" fill="${THEME.streak}" font-size="24" font-weight="700" font-family="${FONTS.main}">${formatNumber(streak)}</text>
-    <text x="52" y="66" fill="${THEME.textMuted}" font-size="12" font-weight="500" font-family="${FONTS.main}">Current Streak</text>
+    <text x="52" y="47" fill="${THEME.streak}" font-size="24" font-weight="700" font-family="${FONTS.main}">${formatNumber(maxStreak)}</text>
+    <text x="52" y="66" fill="${THEME.textMuted}" font-size="12" font-weight="500" font-family="${FONTS.main}">Max Streak</text>
   </g>
 </svg>`;
 }

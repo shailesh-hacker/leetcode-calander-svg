@@ -48,64 +48,150 @@ function getColor(count) {
  * @param {Object<string,number>} submissionMap  — { "unix_ts": count }
  * @returns {{ cells: Array<{x,y,date:Date,count,color,level}>, weeks: number }}
  */
+/**
+ * Build the hierarchical grid of cells matching LeetCode's native SVG structure.
+ *
+ * Uses UTC dates throughout so that timestamp lookups match the API's UTC-midnight
+ * unix timestamps exactly.
+ *
+ * Spacing matches LeetCode's exact layout:
+ * - cellSize = 8.86, cellGap = 2.66, step = 11.52
+ * - month step = 15.95 (instead of 11.52)
+ * - mid-week splits padded with transparent rects
+ *
+ * @param {number|null} year — if null, generates a rolling 1-year calendar ending today
+ * @param {Object<string,number>} submissionMap  — { "unix_ts": count }
+ * @returns {{ cells: Array<{date:Date,count,color,level}>, months: Array<Object> }}
+ */
 function getCalendarGrid(year, submissionMap) {
-  const { cellSize, cellGap } = DIMENSIONS;
-  const gridOffsetX = 40;
-  const gridOffsetY = 25;
-  const step = cellSize + cellGap;
   const MS_PER_DAY = 86400000;
-
-  let startMs, endMs;
   const isRolling = !year;
 
+  let startMs, endMs;
   if (isRolling) {
-    // Rolling 1-year calendar: 53 weeks ending on the Sunday of the current week
     const now = new Date();
     const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    const d = new Date(todayUtc);
-    const day = d.getUTCDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
-    const daysToSunday = day === 0 ? 0 : 7 - day;
-    endMs = todayUtc + daysToSunday * MS_PER_DAY;
-    startMs = endMs - (53 * 7 - 1) * MS_PER_DAY; // starts on a Monday
+    endMs = todayUtc;
+    startMs = todayUtc - 365 * MS_PER_DAY; // 366 days total inclusive (exactly 1 rolling year)
   } else {
-    // Fixed calendar year: Jan 1 to Dec 31
     startMs = Date.UTC(year, 0, 1);
     endMs = Date.UTC(year, 11, 31);
   }
 
-  // dayOfWeek: 0 = Sun … 6 = Sat  →  remap to Mon-first: Mon=0 … Sun=6
-  const remapDay = (d) => (d === 0 ? 6 : d - 1);
-
-  const cells = [];
-  let weekCol = 0;
+  // Generate flat array of actual days in order
+  const days = [];
   let curMs = startMs;
-
   while (curMs <= endMs) {
     const d = new Date(curMs);
-    const dayIndex = remapDay(d.getUTCDay()); // row
-
-    // Detect week change (every Monday after first cell)
-    if (dayIndex === 0 && cells.length > 0) {
-      weekCol++;
-    }
-
-    // Look up submission count — API uses seconds, not ms
     const tsSec = curMs / 1000;
     const count = submissionMap[String(tsSec)] || 0;
-
-    cells.push({
-      x: gridOffsetX + weekCol * step,
-      y: gridOffsetY + dayIndex * step,
+    days.push({
       date: d,
       count,
       color: getColor(count),
       level: getSubmissionLevel(count),
+      dayOfWeek: d.getUTCDay(),
+      month: d.getUTCMonth(),
+      year: d.getUTCFullYear(),
     });
-
     curMs += MS_PER_DAY;
   }
 
-  return { cells, weeks: weekCol + 1 };
+  // Build hierarchical Month -> Week -> Day structure
+  const months = [];
+  let currentMonthGroup = null;
+  let currentWeekGroup = null;
+  let currentX = 0;
+  let lastWeekX = 0;
+  let monthNum = 0;
+  let weekNum = 0;
+
+  for (let i = 0; i < days.length; i++) {
+    const d = days[i];
+
+    // 1. Detect month change
+    const isNewMonth = currentMonthGroup === null ||
+                       d.month !== currentMonthGroup.monthIndex ||
+                       d.year !== currentMonthGroup.year;
+
+    if (isNewMonth) {
+      monthNum++;
+      currentWeekGroup = null; // Close current week group
+      weekNum = 0; // Reset week counter for the new month
+
+      if (currentMonthGroup !== null) {
+        // Shifting to a new month: step is 15.95 from the last week column
+        currentX = lastWeekX + 15.95;
+      } else {
+        // Very first month starts at x = 0
+        currentX = 0;
+      }
+
+      currentMonthGroup = {
+        num: monthNum,
+        monthIndex: d.month,
+        year: d.year,
+        x: currentX,
+        weeks: [],
+      };
+      months.push(currentMonthGroup);
+    }
+
+    // 2. Detect week change
+    // A week change occurs if there's no active week group, or if it's Sunday (dayOfWeek === 0)
+    const isNewWeek = currentWeekGroup === null || d.dayOfWeek === 0;
+
+    if (isNewWeek) {
+      weekNum++;
+      if (weekNum > 1) {
+        // Same month week transition: step is 11.52
+        currentX = lastWeekX + 11.52;
+      }
+      // Note: if weekNum === 1, currentX is already set to the month start x
+
+      currentWeekGroup = {
+        num: weekNum,
+        x: currentX,
+        rects: [],
+      };
+      currentMonthGroup.weeks.push(currentWeekGroup);
+      lastWeekX = currentX; // Update last week X
+
+      // Prepend transparent cells if the first day in this week starts mid-week
+      const startDayOfWeek = d.dayOfWeek;
+      for (let j = 0; j < startDayOfWeek; j++) {
+        currentWeekGroup.rects.push({
+          x: currentX,
+          y: j * 11.52,
+          fill: 'transparent',
+          isTransparent: true,
+        });
+      }
+    }
+
+    // 3. Add actual day cell
+    const dateStr = d.date.toISOString().split('T')[0];
+    const tooltip = `${d.count} submission${d.count !== 1 ? 's' : ''} on ${dateStr}`;
+    let fillVal = 'var(--fill-tertiary)';
+    if (d.level === 1) fillVal = 'var(--green-20)';
+    else if (d.level === 2) fillVal = 'var(--green-60)';
+    else if (d.level >= 3) fillVal = 'var(--green-80)';
+
+    currentWeekGroup.rects.push({
+      x: currentX,
+      y: d.dayOfWeek * 11.52,
+      width: 8.86,
+      height: 8.86,
+      fill: fillVal,
+      level: d.level,
+      count: d.count,
+      date: d.date,
+      tooltip,
+      isTransparent: false,
+    });
+  }
+
+  return { cells: days, months };
 }
 
 /* ────────────────────────────────────────────────────
@@ -118,51 +204,53 @@ const MONTH_NAMES = [
 ];
 
 /**
- * Calculate the x-position for each month label dynamically based on
- * the generated week columns and date transitions.
+ * Calculate the x-position for each month label dynamically based on LeetCode's formula:
+ * labelX = (average x of all weeks in that month) - 8.64
  *
- * @param {Array<Object>} cells — array of grid cells
+ * @param {Array<Object>} months — array of month groups
  * @returns {Array<{name: string, x: number}>}
  */
-function getMonthLabels(cells) {
-  const { cellSize, cellGap } = DIMENSIONS;
-  const gridOffsetX = 40;
-  const step = cellSize + cellGap;
+function getMonthLabels(months) {
   const labels = [];
+  months.forEach((m) => {
+    if (m.weeks.length === 0) return;
+    const sumX = m.weeks.reduce((sum, w) => sum + w.x, 0);
+    const avgX = sumX / m.weeks.length;
+    const labelX = avgX - 8.64;
 
-  // Group cells by week column
-  const weeks = [];
-  for (const cell of cells) {
-    const weekCol = Math.round((cell.x - gridOffsetX) / step);
-    if (!weeks[weekCol]) weeks[weekCol] = [];
-    weeks[weekCol].push(cell);
-  }
-
-  let lastMonth = -1;
-  for (let w = 0; w < weeks.length; w++) {
-    if (!weeks[w] || weeks[w].length === 0) continue;
-    // Look at the first cell in this week column (usually Monday)
-    const date = weeks[w][0].date;
-    const month = date.getUTCMonth();
-    if (month !== lastMonth) {
+    // Only render label if it falls within the visible viewBox (x >= 0)
+    if (labelX >= 0) {
       labels.push({
-        name: MONTH_NAMES[month],
-        x: weeks[w][0].x,
+        name: MONTH_NAMES[m.monthIndex],
+        x: labelX,
       });
-      lastMonth = month;
     }
-  }
-
-  // Deduplicate/remove labels that are too close (within 3 columns)
-  // to avoid overlapping text in the SVG
-  for (let i = 1; i < labels.length; i++) {
-    if (labels[i].x - labels[i - 1].x < step * 3) {
-      labels.splice(i, 1);
-      i--;
-    }
-  }
-
+  });
   return labels;
+}
+
+/**
+ * Calculate the maximum consecutive submission streak from grid cells.
+ *
+ * @param {Array<Object>} cells — array of grid cells
+ * @returns {number} max streak
+ */
+function getMaxStreak(cells) {
+  let maxStreak = 0;
+  let currentStreak = 0;
+
+  for (const cell of cells) {
+    if (cell.count > 0) {
+      currentStreak++;
+      if (currentStreak > maxStreak) {
+        maxStreak = currentStreak;
+      }
+    } else {
+      currentStreak = 0;
+    }
+  }
+
+  return maxStreak;
 }
 
 /* ────────────────────────────────────────────────────
@@ -198,6 +286,7 @@ module.exports = {
   getColor,
   getCalendarGrid,
   getMonthLabels,
+  getMaxStreak,
   escapeXml,
   formatNumber,
 };

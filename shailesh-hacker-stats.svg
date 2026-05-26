@@ -28,6 +28,6 @@
     </g>
     <!-- Stats text -->
     <text x="52" y="47" fill="#ff9500" font-size="24" font-weight="700" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">67</text>
-    <text x="52" y="66" fill="#8b949e" font-size="12" font-weight="500" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Current Streak</text>
+    <text x="52" y="66" fill="#8b949e" font-size="12" font-weight="500" font-family="'Segoe UI', Ubuntu, 'Helvetica Neue', sans-serif">Max Streak</text>
   </g>
 </svg>
