@@ -202,71 +202,98 @@ function generateProblemsSvg(data) {
   const { solvedProblem, easySolved, mediumSolved, hardSolved } = data;
 
   const width = 380;
-  const height = 130;
+  const height = 100;
   const borderRadius = 12;
 
   // Total problems on LeetCode (approximate, for bar ratios)
   const totalEasy = 850;
   const totalMedium = 1800;
   const totalHard = 800;
+  const totalProblems = totalEasy + totalMedium + totalHard;
 
-  // Progress bar dimensions
-  const barWidth = 140;
-  const barHeight = 8;
-  const barX = 210;
-  const barRadius = 4;
-
-  // Calculate fill widths (clamped 0–100%)
+  // Progress calculations
   const easyPct = Math.min((easySolved / totalEasy) * 100, 100);
   const medPct = Math.min((mediumSolved / totalMedium) * 100, 100);
   const hardPct = Math.min((hardSolved / totalHard) * 100, 100);
+  const overallPct = Math.min((solvedProblem / totalProblems) * 100, 100);
+
+  // Layout geometry
+  const barWidth = 210;
+  const barHeight = 4;
+  const barX = 145;
+  const barRadius = 2;
 
   const easyFill = (easyPct / 100) * barWidth;
   const medFill = (medPct / 100) * barWidth;
   const hardFill = (hardPct / 100) * barWidth;
 
+  // Circular gauge geometry
+  const circleRadius = 28;
+  const circumference = 2 * Math.PI * circleRadius; // ~175.93
+  const strokeDashoffset = circumference - (overallPct / 100) * circumference;
+
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
+  <!-- Gradient for circular progress -->
+  <defs>
+    <linearGradient id="solvedGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00b8a3" />
+      <stop offset="100%" stop-color="#00f2fe" />
+    </linearGradient>
+  </defs>
+
   <!-- Background card -->
   <rect width="${width}" height="${height}" rx="${borderRadius}" fill="${THEME.bg}" stroke="${THEME.cardBorder}" stroke-width="1"/>
 
-  <!-- Left Column: Total Solved -->
-  <g transform="translate(20, 0)">
-    <!-- Solved icon (checkmark circle) -->
-    <g transform="translate(10, 38)">
-      <circle cx="10" cy="10" r="10" fill="none" stroke="${THEME.easy}" stroke-width="1.8"/>
-      <polyline points="6,10 9,13.5 15,7" fill="none" stroke="${THEME.easy}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>
-    <text x="42" y="47" fill="${THEME.text}" font-size="28" font-weight="700" font-family="${FONTS.main}">${formatNumber(solvedProblem)}</text>
-    <text x="42" y="66" fill="${THEME.textMuted}" font-size="12" font-weight="500" font-family="${FONTS.main}">Solved</text>
+  <!-- Left Column: Circular Progress Ring -->
+  <g transform="translate(0, 0)">
+    <!-- Background circle track -->
+    <circle cx="65" cy="50" r="${circleRadius}" stroke="${THEME.cardBorder}" stroke-width="5" fill="none" />
+    <!-- Foreground progress ring -->
+    <circle cx="65" cy="50" r="${circleRadius}" stroke="url(#solvedGrad)" stroke-width="5" fill="none" 
+            stroke-dasharray="${circumference.toFixed(2)}" stroke-dashoffset="${strokeDashoffset.toFixed(2)}" 
+            stroke-linecap="round" transform="rotate(-90 65 50)" />
+    
+    <!-- Text inside the circle -->
+    <text x="65" y="47" fill="${THEME.text}" font-size="16" font-weight="700" font-family="${FONTS.main}" text-anchor="middle">${formatNumber(solvedProblem)}</text>
+    <text x="65" y="60" fill="${THEME.textMuted}" font-size="8" font-weight="600" font-family="${FONTS.main}" text-anchor="middle" letter-spacing="0.5">SOLVED</text>
   </g>
 
   <!-- Divider -->
-  <line x1="180" y1="20" x2="180" y2="110" stroke="${THEME.cardBorder}" stroke-width="1"/>
+  <line x1="125" y1="15" x2="125" y2="85" stroke="${THEME.cardBorder}" stroke-width="1"/>
 
   <!-- Right Column: Difficulty Breakdown -->
-  <g transform="translate(0, 0)">
+  <g>
     <!-- Easy Row -->
-    <g transform="translate(${barX}, 28)">
-      <text x="-18" y="9" fill="${THEME.easy}" font-size="11" font-weight="600" font-family="${FONTS.main}" text-anchor="end">Easy</text>
-      <rect x="0" y="0" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(0, 184, 163, 0.15)"/>
-      <rect x="0" y="0" width="${Math.max(easyFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.easy}"/>
-      <text x="${barWidth + 8}" y="9" fill="${THEME.textMuted}" font-size="10" font-weight="500" font-family="${FONTS.main}">${easySolved}</text>
+    <g transform="translate(0, 0)">
+      <text x="${barX}" y="24" fill="${THEME.easy}" font-size="12" font-weight="600" font-family="${FONTS.main}">Easy</text>
+      <text x="355" y="24" text-anchor="end" font-family="${FONTS.main}" font-size="12">
+        <tspan fill="${THEME.text}" font-weight="600">${easySolved}</tspan>
+        <tspan fill="${THEME.textMuted}" font-weight="400">/${totalEasy}</tspan>
+      </text>
+      <rect x="${barX}" y="31" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(0, 184, 163, 0.1)"/>
+      <rect x="${barX}" y="31" width="${Math.max(easyFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.easy}"/>
     </g>
 
     <!-- Medium Row -->
-    <g transform="translate(${barX}, 54)">
-      <text x="-18" y="9" fill="${THEME.medium}" font-size="11" font-weight="600" font-family="${FONTS.main}" text-anchor="end">Med</text>
-      <rect x="0" y="0" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(255, 192, 30, 0.15)"/>
-      <rect x="0" y="0" width="${Math.max(medFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.medium}"/>
-      <text x="${barWidth + 8}" y="9" fill="${THEME.textMuted}" font-size="10" font-weight="500" font-family="${FONTS.main}">${mediumSolved}</text>
+    <g transform="translate(0, 0)">
+      <text x="${barX}" y="50" fill="${THEME.medium}" font-size="12" font-weight="600" font-family="${FONTS.main}">Medium</text>
+      <text x="355" y="50" text-anchor="end" font-family="${FONTS.main}" font-size="12">
+        <tspan fill="${THEME.text}" font-weight="600">${mediumSolved}</tspan>
+        <tspan fill="${THEME.textMuted}" font-weight="400">/${totalMedium}</tspan>
+      </text>
+      <rect x="${barX}" y="57" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(255, 192, 30, 0.1)"/>
+      <rect x="${barX}" y="57" width="${Math.max(medFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.medium}"/>
     </g>
 
     <!-- Hard Row -->
-    <g transform="translate(${barX}, 80)">
-      <text x="-18" y="9" fill="${THEME.hard}" font-size="11" font-weight="600" font-family="${FONTS.main}" text-anchor="end">Hard</text>
-      <rect x="0" y="0" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(255, 55, 95, 0.15)"/>
-      <rect x="0" y="0" width="${Math.max(hardFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.hard}"/>
-      <text x="${barWidth + 8}" y="9" fill="${THEME.textMuted}" font-size="10" font-weight="500" font-family="${FONTS.main}">${hardSolved}</text>
+    <g transform="translate(0, 0)">
+      <text x="${barX}" y="76" fill="${THEME.hard}" font-size="12" font-weight="600" font-family="${FONTS.main}">Hard</text>
+      <text x="355" y="76" text-anchor="end" font-family="${FONTS.main}" font-size="12">
+        <tspan fill="${THEME.text}" font-weight="600">${hardSolved}</tspan>
+        <tspan fill="${THEME.textMuted}" font-weight="400">/${totalHard}</tspan>
+      </text>
+      <rect x="${barX}" y="83" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(255, 55, 95, 0.1)"/>
+      <rect x="${barX}" y="83" width="${Math.max(hardFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.hard}"/>
     </g>
   </g>
 </svg>`;
