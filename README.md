@@ -28,12 +28,32 @@ All SVGs support:
 
 ---
 
-## 🚀 Deployment on Vercel (Recommended)
+## 🚀 Quick Start / How to Use
 
-This project is pre-configured to run as a **Vercel Serverless Function** using `vercel.json`.
+You can use the public hosted instance of this generator directly without deploying anything!
+
+Just replace `YOUR_USERNAME` with your LeetCode username and paste these links into your GitHub Profile README:
+
+```markdown
+<p align="center">
+  <img src="https://leetcode-calander-svg.vercel.app/YOUR_USERNAME" width="694" alt="LeetCode Heatmap Grid"/>
+</p>
+<p align="center">
+  <img src="https://leetcode-calander-svg.vercel.app/YOUR_USERNAME/stats" width="380" alt="LeetCode Stats"/>
+</p>
+<p align="center">
+  <img src="https://leetcode-calander-svg.vercel.app/YOUR_USERNAME/problems" width="380" alt="LeetCode Solved Problems"/>
+</p>
+```
+
+---
+
+## ☁️ Self-Hosting / Custom Deployment (Optional)
+
+If you prefer to host your own instance (to customize styles, endpoints, or reduce server load), this project is pre-configured to run as a **Vercel Serverless Function** using `vercel.json`.
 
 ### Option A: 1-Click Import (easiest)
-1. Push this repository to your GitHub account.
+1. Fork or push this repository to your GitHub account.
 2. Log in to [Vercel](https://vercel.com).
 3. Click **"Add New" > "Project"** and import your repository.
 4. Vercel will automatically read `vercel.json` and deploy the project.
@@ -44,18 +64,7 @@ If you have Vercel CLI installed:
 vercel
 ```
 
-Once deployed, visit the root URL of your Vercel project to open the generator UI dashboard. From there, you can type your username to generate the custom URLs, download the SVGs, or copy the snippets:
-```markdown
-<p align="center">
-  <img src="https://your-app-domain.vercel.app/YOUR_USERNAME" width="694" alt="LeetCode Heatmap Grid"/>
-</p>
-<p align="center">
-  <img src="https://your-app-domain.vercel.app/YOUR_USERNAME/stats" width="380" alt="LeetCode Stats"/>
-</p>
-<p align="center">
-  <img src="https://your-app-domain.vercel.app/YOUR_USERNAME/problems" width="380" alt="LeetCode Solved Problems"/>
-</p>
-```
+Once deployed, visit the root URL of your Vercel project to open the generator UI dashboard. From there, you can type your username to generate the custom URLs, download the SVGs, or copy the snippets.
 
 ---
 
