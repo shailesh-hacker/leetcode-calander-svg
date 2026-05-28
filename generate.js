@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { fetchAllData } = require('./src/api');
-const { generateSvg, generateStatsSvg } = require('./src/svg/generator');
+const { generateSvg, generateStatsSvg, generateProblemsSvg } = require('./src/svg/generator');
 
 async function main() {
   const username = process.argv[2];
@@ -16,15 +16,20 @@ async function main() {
     console.log('🎨 Rendering SVGs...');
     const gridSvg = generateSvg(data);
     const statsSvg = generateStatsSvg(data);
+    const problemsSvg = generateProblemsSvg(data);
 
     const gridFilename = `${username}-grid.svg`;
     const statsFilename = `${username}-stats.svg`;
+    const problemsFilename = `${username}-problems.svg`;
 
     fs.writeFileSync(gridFilename, gridSvg, 'utf8');
     console.log(`✅ Saved compact grid to: ${gridFilename} (${gridSvg.length} bytes)`);
 
     fs.writeFileSync(statsFilename, statsSvg, 'utf8');
     console.log(`✅ Saved stats card to:  ${statsFilename} (${statsSvg.length} bytes)`);
+
+    fs.writeFileSync(problemsFilename, problemsSvg, 'utf8');
+    console.log(`✅ Saved problems card to: ${problemsFilename} (${problemsSvg.length} bytes)`);
 
     console.log('\n🎉 Generation completed successfully!\n');
   } catch (err) {
@@ -34,3 +39,4 @@ async function main() {
 }
 
 main();
+

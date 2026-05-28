@@ -17,8 +17,9 @@
 This project provides a beautiful, native-looking LeetCode profile generator including:
 
 1. 🖥️ **Interactive Web UI Generator (`/`)**: A sleek, dark-themed glassmorphism visual page where users can input their LeetCode username and render year to preview SVGs, download them as static files directly, and copy one-click markdown/HTML embed snippets.
-2. 🗓️ **Compact Heatmap Grid (`GET /:username`)**: A clean calendar grid showing submissions exactly like LeetCode's native visual spacing and nesting (viewBox `764.74 × 104.64`).
-3. 📊 **Streak & Active Days Card (`GET /:username/stats`)**: A dedicated stats card (width 380px) displaying your active days and max streak count with clean flame/calendar icons.
+2. 🗓️ **Compact Heatmap Grid (`GET /:username`)**: A clean calendar grid showing submissions exactly like LeetCode's native visual spacing and nesting.
+3. 📊 **Streak & Active Days Card (`GET /:username/stats`)**: A dedicated stats card displaying your active days and max streak count with clean flame/calendar icons.
+4. 🧩 **Solved Problems Card (`GET /:username/problems`)**: A card showing total solved problems with a per-difficulty (Easy/Medium/Hard) breakdown and color-coded progress bars.
 
 All SVGs support:
 - ⚡ **Direct GraphQL Integration** — Fetches from LeetCode directly for speed.
@@ -35,7 +36,7 @@ This project is pre-configured to run as a **Vercel Serverless Function** using 
 1. Push this repository to your GitHub account.
 2. Log in to [Vercel](https://vercel.com).
 3. Click **"Add New" > "Project"** and import your repository.
-4. Vercel will automatically read [vercel.json](file:///c:/Users/shail/Desktop/passion/leetcode-calander-svg/vercel.json) and deploy the project.
+4. Vercel will automatically read `vercel.json` and deploy the project.
 
 ### Option B: Vercel CLI
 If you have Vercel CLI installed:
@@ -46,29 +47,37 @@ vercel
 Once deployed, visit the root URL of your Vercel project to open the generator UI dashboard. From there, you can type your username to generate the custom URLs, download the SVGs, or copy the snippets:
 ```markdown
 <p align="center">
-  <img src="https://your-app-domain.vercel.app/shailesh-hacker" width="694" alt="LeetCode Heatmap Grid"/>
+  <img src="https://your-app-domain.vercel.app/YOUR_USERNAME" width="694" alt="LeetCode Heatmap Grid"/>
 </p>
 <p align="center">
-  <img src="https://your-app-domain.vercel.app/shailesh-hacker/stats" width="380" alt="LeetCode Stats"/>
+  <img src="https://your-app-domain.vercel.app/YOUR_USERNAME/stats" width="380" alt="LeetCode Stats"/>
+</p>
+<p align="center">
+  <img src="https://your-app-domain.vercel.app/YOUR_USERNAME/problems" width="380" alt="LeetCode Solved Problems"/>
 </p>
 ```
 
 ---
 
-## 🤖 Serverless Automation (Zero-Host Alternative)
+## 🤖 Static SVG via GitHub Actions (Optional Template)
 
-If you don't want to run a web server, you can use the built-in **GitHub Actions** schedule to run the script and push the SVGs directly into your profile repository!
+If you prefer to serve static SVGs committed directly into your repository (no live server needed), use the included **GitHub Actions workflow template**.
 
-1. Go to your repository **Settings > Actions > General > Workflow permissions** and set to **"Read and write permissions"**.
-2. Customize the username in [.github/workflows/update-leetcode.yml](file:///c:/Users/shail/Desktop/passion/leetcode-calander-svg/.github/workflows/update-leetcode.yml).
-3. The Action will automatically run every 12 hours, generate the SVGs, and commit them.
-4. Reference the committed files directly in your `README.md`:
+### Setup:
+1. Copy `examples/workflows/update-leetcode.yml` to `.github/workflows/update-leetcode.yml` in your profile repo.
+2. Replace every instance of `YOUR_USERNAME` with your LeetCode username.
+3. Go to your repository **Settings > Actions > General > Workflow permissions** and set to **"Read and write permissions"**.
+4. The Action will run every 12 hours, generate the SVGs, and commit them to your repo.
+5. Reference the committed files directly in your `README.md`:
    ```markdown
    <p align="center">
-     <img src="shailesh-hacker-grid.svg" width="790" alt="LeetCode Heatmap Grid"/>
+     <img src="YOUR_USERNAME-grid.svg" width="790" alt="LeetCode Heatmap Grid"/>
    </p>
    <p align="center">
-     <img src="shailesh-hacker-stats.svg" width="380" alt="LeetCode Stats"/>
+     <img src="YOUR_USERNAME-stats.svg" width="380" alt="LeetCode Stats"/>
+   </p>
+   <p align="center">
+     <img src="YOUR_USERNAME-problems.svg" width="380" alt="LeetCode Solved Problems"/>
    </p>
    ```
 
@@ -98,17 +107,30 @@ Generates the stats card (active days & current streak).
 
 ---
 
+### `GET /:username/problems`
+
+Generates the solved problems card with Easy/Medium/Hard breakdown.
+
+| Parameter  | Type   | Default | Description |
+| ---------- | ------ | ------- | ----------- |
+| `username` | path   | *req*   | LeetCode username |
+| `year`     | query  | rolling | Optional. Fixed calendar year (e.g. `2025`) |
+
+---
+
 ## 🏗️ Project Structure
 
 ```
 leetcode-calendar-svg/
-├── .github/workflows/
-│   └── update-leetcode.yml # GitHub Actions scheduled workflow
+├── examples/workflows/
+│   └── update-leetcode.yml # GitHub Actions template (copy to .github/workflows/)
 ├── src/
 │   ├── index.js            # Express server entry point & routing
 │   ├── api.js              # Direct LeetCode GraphQL client
+│   ├── public/
+│   │   └── index.html      # Web UI dashboard
 │   └── svg/
-│       ├── generator.js    # Heatmap & stats SVG builders
+│       ├── generator.js    # Heatmap, stats & problems SVG builders
 │       ├── theme.js        # Dark theme palettes & margins
 │       └── utils.js        # Date manipulation & cell mapping
 ├── generate.js             # CLI script for local SVG generation
@@ -133,7 +155,7 @@ npm run dev
 
 ### 3. CLI Generation Test
 ```bash
-node generate.js shailesh-hacker
+node generate.js YOUR_USERNAME
 ```
 
 ---
@@ -147,6 +169,14 @@ node generate.js shailesh-hacker
 | 2     | `#006d32` | 3–5         |
 | 3     | `#26a641` | 6–9         |
 | 4     | `#39d353` | 10+         |
+
+### Difficulty Colors
+
+| Difficulty | Color     |
+| ---------- | --------- |
+| Easy       | `#00b8a3` |
+| Medium     | `#ffc01e` |
+| Hard       | `#ff375f` |
 
 ---
 

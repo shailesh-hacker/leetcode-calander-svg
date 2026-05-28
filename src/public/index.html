@@ -485,6 +485,35 @@
         </div>
       </div>
 
+      <!-- 3. Solved Problems Card -->
+      <div id="problemsCard" class="preview-card">
+        <div class="preview-header">
+          <div class="preview-title">📊 Solved Problems Stats</div>
+          <div class="actions-row">
+            <button class="btn-action download" onclick="downloadSVG('problems')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download SVG
+            </button>
+            <button class="btn-action" onclick="copySnippet('problems-md')">Copy Markdown</button>
+            <button class="btn-action" onclick="copySnippet('problems-html')">Copy HTML</button>
+          </div>
+        </div>
+
+        <div class="svg-wrapper stats-wrapper">
+          <div id="problemsLoader" class="loader"></div>
+          <img id="problemsImg" alt="LeetCode Solved Problems Preview" style="display: none;">
+        </div>
+
+        <div class="code-container">
+          <div class="code-label">Markdown Snippet</div>
+          <code id="problems-md"></code>
+        </div>
+        <div class="code-container">
+          <div class="code-label">HTML Snippet</div>
+          <code id="problems-html"></code>
+        </div>
+      </div>
+
     </section>
 
     <footer>
@@ -501,17 +530,22 @@
 
     const gridCard = document.getElementById('gridCard');
     const statsCard = document.getElementById('statsCard');
+    const problemsCard = document.getElementById('problemsCard');
 
     const gridImg = document.getElementById('gridImg');
     const statsImg = document.getElementById('statsImg');
+    const problemsImg = document.getElementById('problemsImg');
 
     const gridLoader = document.getElementById('gridLoader');
     const statsLoader = document.getElementById('statsLoader');
+    const problemsLoader = document.getElementById('problemsLoader');
 
     const gridMd = document.getElementById('grid-md');
     const gridHtml = document.getElementById('grid-html');
     const statsMd = document.getElementById('stats-md');
     const statsHtml = document.getElementById('stats-html');
+    const problemsMd = document.getElementById('problems-md');
+    const problemsHtml = document.getElementById('problems-html');
 
     const toast = document.getElementById('toast');
 
@@ -534,27 +568,33 @@
         return;
       }
 
-      // Show loader, hide image
+      // Show loaders, hide images
       gridLoader.style.display = 'block';
       statsLoader.style.display = 'block';
+      problemsLoader.style.display = 'block';
       gridImg.style.display = 'none';
       statsImg.style.display = 'none';
+      problemsImg.style.display = 'none';
 
-      // Ensure cards are visible container-wise
+      // Ensure cards are visible
       gridCard.classList.add('visible');
       statsCard.classList.add('visible');
+      problemsCard.classList.add('visible');
 
       // Build target URLs
       let gridUrl = `${baseUrl}/${username}`;
       let statsUrl = `${baseUrl}/${username}/stats`;
+      let problemsUrl = `${baseUrl}/${username}/problems`;
       if (year !== 'rolling') {
         gridUrl += `?year=${year}`;
         statsUrl += `?year=${year}`;
+        problemsUrl += `?year=${year}`;
       }
 
       // Set image sources
       gridImg.src = gridUrl;
       statsImg.src = statsUrl;
+      problemsImg.src = problemsUrl;
 
       // Handle loading callbacks
       gridImg.onload = () => {
@@ -567,6 +607,11 @@
         statsImg.style.display = 'block';
       };
 
+      problemsImg.onload = () => {
+        problemsLoader.style.display = 'none';
+        problemsImg.style.display = 'block';
+      };
+
       gridImg.onerror = () => {
         gridLoader.style.display = 'none';
         showToast('❌ Error loading grid SVG. Make sure username is correct.');
@@ -576,6 +621,10 @@
         statsLoader.style.display = 'none';
       };
 
+      problemsImg.onerror = () => {
+        problemsLoader.style.display = 'none';
+      };
+
       // Set code snippets
       const gridMarkdownStr = `[![LeetCode Heatmap Grid](${gridUrl})](https://leetcode.com/${username})`;
       const gridHtmlStr = `<a href="https://leetcode.com/${username}" target="_blank">\n  <img src="${gridUrl}" width="694" alt="LeetCode Heatmap Grid"/>\n</a>`;
@@ -583,10 +632,15 @@
       const statsMarkdownStr = `[![LeetCode Streak & Active Days](${statsUrl})](https://leetcode.com/${username})`;
       const statsHtmlStr = `<a href="https://leetcode.com/${username}" target="_blank">\n  <img src="${statsUrl}" width="380" alt="LeetCode Streak & Active Days"/>\n</a>`;
 
+      const problemsMarkdownStr = `[![LeetCode Solved Problems](${problemsUrl})](https://leetcode.com/${username})`;
+      const problemsHtmlStr = `<a href="https://leetcode.com/${username}" target="_blank">\n  <img src="${problemsUrl}" width="380" alt="LeetCode Solved Problems"/>\n</a>`;
+
       gridMd.textContent = gridMarkdownStr;
       gridHtml.textContent = gridHtmlStr;
       statsMd.textContent = statsMarkdownStr;
       statsHtml.textContent = statsHtmlStr;
+      problemsMd.textContent = problemsMarkdownStr;
+      problemsHtml.textContent = problemsHtmlStr;
     }
 
     function copySnippet(elementId) {
@@ -599,8 +653,10 @@
     function downloadSVG(type) {
       const username = usernameInput.value.trim() || 'leetcode';
       const year = yearSelect.value;
-      const img = type === 'grid' ? gridImg : statsImg;
-      const suffix = type === 'grid' ? 'grid' : 'stats';
+      let img, suffix;
+      if (type === 'grid') { img = gridImg; suffix = 'grid'; }
+      else if (type === 'stats') { img = statsImg; suffix = 'stats'; }
+      else { img = problemsImg; suffix = 'problems'; }
       const filename = `${username}-${suffix}.svg`;
 
       if (!img.src) {

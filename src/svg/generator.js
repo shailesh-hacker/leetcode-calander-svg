@@ -182,6 +182,97 @@ function generateStatsSvg(data) {
 }
 
 /* ────────────────────────────────────────────────────
+ * Solved Problems Stats Card
+ * ──────────────────────────────────────────────────── */
+
+/**
+ * Generate a premium stats card SVG showing solved problem counts
+ * broken down by difficulty (Easy, Medium, Hard) with progress bars.
+ *
+ * Dimensions: 380px × 130px
+ *
+ * @param {Object} data
+ * @param {number} data.solvedProblem
+ * @param {number} data.easySolved
+ * @param {number} data.mediumSolved
+ * @param {number} data.hardSolved
+ * @returns {string} SVG markup
+ */
+function generateProblemsSvg(data) {
+  const { solvedProblem, easySolved, mediumSolved, hardSolved } = data;
+
+  const width = 380;
+  const height = 130;
+  const borderRadius = 12;
+
+  // Total problems on LeetCode (approximate, for bar ratios)
+  const totalEasy = 850;
+  const totalMedium = 1800;
+  const totalHard = 800;
+
+  // Progress bar dimensions
+  const barWidth = 140;
+  const barHeight = 8;
+  const barX = 210;
+  const barRadius = 4;
+
+  // Calculate fill widths (clamped 0–100%)
+  const easyPct = Math.min((easySolved / totalEasy) * 100, 100);
+  const medPct = Math.min((mediumSolved / totalMedium) * 100, 100);
+  const hardPct = Math.min((hardSolved / totalHard) * 100, 100);
+
+  const easyFill = (easyPct / 100) * barWidth;
+  const medFill = (medPct / 100) * barWidth;
+  const hardFill = (hardPct / 100) * barWidth;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" fill="none">
+  <!-- Background card -->
+  <rect width="${width}" height="${height}" rx="${borderRadius}" fill="${THEME.bg}" stroke="${THEME.cardBorder}" stroke-width="1"/>
+
+  <!-- Left Column: Total Solved -->
+  <g transform="translate(20, 0)">
+    <!-- Solved icon (checkmark circle) -->
+    <g transform="translate(10, 38)">
+      <circle cx="10" cy="10" r="10" fill="none" stroke="${THEME.easy}" stroke-width="1.8"/>
+      <polyline points="6,10 9,13.5 15,7" fill="none" stroke="${THEME.easy}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="42" y="47" fill="${THEME.text}" font-size="28" font-weight="700" font-family="${FONTS.main}">${formatNumber(solvedProblem)}</text>
+    <text x="42" y="66" fill="${THEME.textMuted}" font-size="12" font-weight="500" font-family="${FONTS.main}">Solved</text>
+  </g>
+
+  <!-- Divider -->
+  <line x1="180" y1="20" x2="180" y2="110" stroke="${THEME.cardBorder}" stroke-width="1"/>
+
+  <!-- Right Column: Difficulty Breakdown -->
+  <g transform="translate(0, 0)">
+    <!-- Easy Row -->
+    <g transform="translate(${barX}, 28)">
+      <text x="-18" y="9" fill="${THEME.easy}" font-size="11" font-weight="600" font-family="${FONTS.main}" text-anchor="end">Easy</text>
+      <rect x="0" y="0" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(0, 184, 163, 0.15)"/>
+      <rect x="0" y="0" width="${Math.max(easyFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.easy}"/>
+      <text x="${barWidth + 8}" y="9" fill="${THEME.textMuted}" font-size="10" font-weight="500" font-family="${FONTS.main}">${easySolved}</text>
+    </g>
+
+    <!-- Medium Row -->
+    <g transform="translate(${barX}, 54)">
+      <text x="-18" y="9" fill="${THEME.medium}" font-size="11" font-weight="600" font-family="${FONTS.main}" text-anchor="end">Med</text>
+      <rect x="0" y="0" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(255, 192, 30, 0.15)"/>
+      <rect x="0" y="0" width="${Math.max(medFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.medium}"/>
+      <text x="${barWidth + 8}" y="9" fill="${THEME.textMuted}" font-size="10" font-weight="500" font-family="${FONTS.main}">${mediumSolved}</text>
+    </g>
+
+    <!-- Hard Row -->
+    <g transform="translate(${barX}, 80)">
+      <text x="-18" y="9" fill="${THEME.hard}" font-size="11" font-weight="600" font-family="${FONTS.main}" text-anchor="end">Hard</text>
+      <rect x="0" y="0" width="${barWidth}" height="${barHeight}" rx="${barRadius}" fill="rgba(255, 55, 95, 0.15)"/>
+      <rect x="0" y="0" width="${Math.max(hardFill, 2)}" height="${barHeight}" rx="${barRadius}" fill="${THEME.hard}"/>
+      <text x="${barWidth + 8}" y="9" fill="${THEME.textMuted}" font-size="10" font-weight="500" font-family="${FONTS.main}">${hardSolved}</text>
+    </g>
+  </g>
+</svg>`;
+}
+
+/* ────────────────────────────────────────────────────
  * Error SVG
  * ──────────────────────────────────────────────────── */
 
@@ -205,4 +296,4 @@ function generateErrorSvg(message) {
 </svg>`;
 }
 
-module.exports = { generateSvg, generateStatsSvg, generateErrorSvg };
+module.exports = { generateSvg, generateStatsSvg, generateProblemsSvg, generateErrorSvg };

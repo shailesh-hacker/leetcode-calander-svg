@@ -12,7 +12,7 @@
 const express = require('express');
 const path = require('path');
 const { fetchAllData } = require('./api');
-const { generateSvg, generateStatsSvg, generateErrorSvg } = require('./svg/generator');
+const { generateSvg, generateStatsSvg, generateProblemsSvg, generateErrorSvg } = require('./svg/generator');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,8 +29,51 @@ app.get('/', (_req, res) => {
 });
 
 /* ────────────────────────────────────────────────────
- * SVG route
+ * Solved Problems card route
  * ──────────────────────────────────────────────────── */
+
+app.get('/:username/problems', async (req, res) => {
+  const { username } = req.params;
+  const year = req.query.year ? parseInt(req.query.year, 10) : null;
+
+  // Set SVG response headers
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  try {
+    // Validate username (basic sanity check)
+    if (!/^[\w-]{1,39}$/.test(username)) {
+      return res.status(400).send(
+        generateErrorSvg(`Invalid username: "${username}"`)
+      );
+    }
+
+    const data = await fetchAllData(username, year);
+    const svg = generateProblemsSvg(data);
+
+    // ETag for conditional requests
+    const etag = `"${username}-problems-${Date.now().toString(36)}"`;
+    res.setHeader('ETag', etag);
+
+    return res.send(svg);
+  } catch (err) {
+    console.error(`[ERROR] /${username}/problems:`, err.message);
+
+    if (err.name === 'AbortError') {
+      return res.status(504).send(
+        generateErrorSvg('LeetCode API timed out — please try again later')
+      );
+    }
+
+    const isNotFound = err.message === 'User not found' || err.message.includes('does not exist');
+    const statusCode = isNotFound ? 404 : 500;
+
+    return res.status(statusCode).send(
+      generateErrorSvg(err.message || `Could not load data for "${username}"`)
+    );
+  }
+});
 
 /* ────────────────────────────────────────────────────
  * Stats card route
