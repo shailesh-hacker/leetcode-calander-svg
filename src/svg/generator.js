@@ -199,16 +199,20 @@ function generateStatsSvg(data) {
  * @returns {string} SVG markup
  */
 function generateProblemsSvg(data) {
-  const { solvedProblem, easySolved, mediumSolved, hardSolved } = data;
+  const {
+    solvedProblem,
+    easySolved,
+    mediumSolved,
+    hardSolved,
+    totalEasy = 850,
+    totalMedium = 1800,
+    totalHard = 800
+  } = data;
 
   const width = 380;
   const height = 100;
   const borderRadius = 12;
 
-  // Total problems on LeetCode (approximate, for bar ratios)
-  const totalEasy = 850;
-  const totalMedium = 1800;
-  const totalHard = 800;
   const totalProblems = totalEasy + totalMedium + totalHard;
 
   // Progress calculations

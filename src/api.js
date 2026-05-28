@@ -88,6 +88,10 @@ async function fetchFromLeetCode(username, year = null) {
     // Fixed calendar year query
     query = `
       query userProblemsAndCalendar($username: String!, $year: Int!) {
+        allQuestionsCount {
+          difficulty
+          count
+        }
         matchedUser(username: $username) {
           userCalendar(year: $year) {
             activeYears
@@ -109,6 +113,10 @@ async function fetchFromLeetCode(username, year = null) {
     // Rolling calendar query (spanning current and previous calendar year)
     query = `
       query userProblemsAndCalendar($username: String!, $year1: Int!, $year2: Int!) {
+        allQuestionsCount {
+          difficulty
+          count
+        }
         matchedUser(username: $username) {
           c1: userCalendar(year: $year1) {
             activeYears
@@ -142,6 +150,8 @@ async function fetchFromLeetCode(username, year = null) {
     throw new Error('User not found');
   }
 
+  user.allQuestionsCount = json.data?.allQuestionsCount || [];
+
   return user;
 }
 
@@ -162,6 +172,14 @@ async function fetchAllData(username, year = null) {
   const easySolved = getSolvedCount('Easy');
   const mediumSolved = getSolvedCount('Medium');
   const hardSolved = getSolvedCount('Hard');
+
+  // Extract total questions count
+  const totalCounts = user.allQuestionsCount || [];
+  const getTotalCount = (diff) => totalCounts.find((q) => q.difficulty === diff)?.count || 0;
+
+  const totalEasy = getTotalCount('Easy') || 850;
+  const totalMedium = getTotalCount('Medium') || 1800;
+  const totalHard = getTotalCount('Hard') || 800;
 
   // Extract calendar stats
   let submissionMap = {};
@@ -224,6 +242,9 @@ async function fetchAllData(username, year = null) {
     easySolved,
     mediumSolved,
     hardSolved,
+    totalEasy,
+    totalMedium,
+    totalHard,
   };
 }
 
