@@ -38,7 +38,11 @@ app.get('/:username/problems', async (req, res) => {
 
   // Set SVG response headers
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
+  res.setHeader('CDN-Cache-Control', 'no-store');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   try {
@@ -85,7 +89,11 @@ app.get('/:username/stats', async (req, res) => {
 
   // Set SVG response headers
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
+  res.setHeader('CDN-Cache-Control', 'no-store');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   try {
@@ -139,7 +147,11 @@ app.get('/:username', async (req, res) => {
 
   // Set SVG response headers
   res.setHeader('Content-Type', 'image/svg+xml');
-  res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Vercel-CDN-Cache-Control', 'no-store');
+  res.setHeader('CDN-Cache-Control', 'no-store');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   try {
